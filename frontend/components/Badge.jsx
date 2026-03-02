@@ -2,11 +2,12 @@
 
 /**
  * Badge component for status display
- * variant: 'paid' | 'unpaid' | 'active' | 'inactive'
+ * variant: 'paid' | 'partial' | 'unpaid' | 'active' | 'inactive'
  */
 export default function Badge({ variant, children }) {
   const styles = {
     paid:     'bg-green-100 text-green-800 border border-green-200',
+    partial:  'bg-amber-100 text-amber-800 border border-amber-200',
     unpaid:   'bg-red-100 text-red-800 border border-red-200',
     active:   'bg-blue-100 text-blue-800 border border-blue-200',
     inactive: 'bg-gray-100 text-gray-600 border border-gray-200',

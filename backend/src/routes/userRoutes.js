@@ -11,6 +11,7 @@ const {
   unpayUser,
   toggleActive,
 } = require('../controllers/userController');
+const { getPayments, deletePayment } = require('../controllers/paymentController');
 
 const router = express.Router();
 
@@ -50,7 +51,7 @@ router.put('/:id', updateUserValidation, updateUser);
 // DELETE /users/:id
 router.delete('/:id', deleteUser);
 
-// POST /users/:id/pay
+// POST /users/:id/pay  — body: { amount_paid, notes? }
 router.post('/:id/pay', payUser);
 
 // PATCH /users/:id/unpay
@@ -58,5 +59,11 @@ router.patch('/:id/unpay', unpayUser);
 
 // PATCH /users/:id/toggle-active
 router.patch('/:id/toggle-active', toggleActive);
+
+// GET /users/:id/payments?year=
+router.get('/:id/payments', getPayments);
+
+// DELETE /users/:id/payments/:paymentId
+router.delete('/:id/payments/:paymentId', deletePayment);
 
 module.exports = router;

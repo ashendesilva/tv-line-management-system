@@ -23,12 +23,31 @@ model User {
   id                  Int       @id @default(autoincrement())
   name                String
   address             String    @db.Text
+  monthly_fee         Decimal   @default(500) @db.Decimal(10, 2)
+  balance             Decimal   @default(0) @db.Decimal(10, 2)
   monthly_payment_day Int
   last_payment_date   DateTime? @db.Date
   is_paid             Boolean   @default(false)
   is_active           Boolean   @default(true)
   created_at          DateTime  @default(now())
   updated_at          DateTime  @updatedAt
+  payments            Payment[]
 
   @@map("users")
+}
+
+model Payment {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  amount_paid    Decimal  @db.Decimal(10, 2)
+  amount_due     Decimal  @db.Decimal(10, 2)
+  balance_before Decimal  @db.Decimal(10, 2)
+  balance_after  Decimal  @db.Decimal(10, 2)
+  month          Int
+  year           Int
+  notes          String?  @db.Text
+  created_at     DateTime @default(now())
+  user           User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }

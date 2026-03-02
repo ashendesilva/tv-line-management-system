@@ -11,6 +11,7 @@ const DEFAULT_FORM = {
   address: '',
   monthly_payment_day: '5',
   is_active: true,
+  initial_balance: '500',
 };
 
 export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, editUser, loading, unpayLoading }) {
@@ -24,6 +25,7 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, edit
         address: editUser.address || '',
         monthly_payment_day: String(editUser.monthly_payment_day) || '5',
         is_active: editUser.is_active !== undefined ? editUser.is_active : true,
+        initial_balance: '500',
       });
     } else {
       setForm(DEFAULT_FORM);
@@ -36,6 +38,8 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, edit
     if (!form.name.trim()) errs.name = 'Name is required.';
     if (!form.address.trim()) errs.address = 'Address is required.';
     if (!form.monthly_payment_day) errs.monthly_payment_day = 'Payment day is required.';
+    if (!editUser && (form.initial_balance === '' || isNaN(parseFloat(form.initial_balance))))
+      errs.initial_balance = 'Initial balance must be a valid number.';
     return errs;
   };
 
@@ -49,6 +53,7 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, edit
     onSubmit({
       ...form,
       monthly_payment_day: parseInt(form.monthly_payment_day),
+      ...(!editUser && { initial_balance: parseFloat(form.initial_balance) }),
     });
   };
 
@@ -84,15 +89,22 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, edit
         {/* Payment status indicator in edit mode */}
         {editUser && (
           <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-4 text-sm font-medium ${
-            editUser.is_paid
+            editUser.payment_status === 'paid'
               ? 'bg-green-50 border border-green-200 text-green-800'
+              : editUser.payment_status === 'partial'
+              ? 'bg-amber-50 border border-amber-200 text-amber-800'
               : 'bg-red-50 border border-red-200 text-red-800'
           }`}>
-            <span>{editUser.is_paid ? '✅' : '❌'}</span>
             <span>
-              Payment Status: <strong>{editUser.is_paid ? 'Paid' : 'Unpaid'}</strong>
+              {editUser.payment_status === 'paid' ? '✅' : editUser.payment_status === 'partial' ? '½' : '❌'}
+            </span>
+            <span>
+              Payment:{' '}
+              <strong>
+                {editUser.payment_status === 'paid' ? 'Paid' : editUser.payment_status === 'partial' ? 'Partial' : 'Unpaid'}
+              </strong>
               {editUser.last_payment_date && (
-                <span className="font-normal text-green-700 ml-1">(Last: {editUser.last_payment_date})</span>
+                <span className="font-normal ml-1">(Last: {editUser.last_payment_date})</span>
               )}
             </span>
           </div>
@@ -135,6 +147,45 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, onUnpay, edit
             </option>
           ))}
         </FormInput>
+
+        {/* Initial Balance — only shown when adding a new user */}
+        {!editUser && (
+          <FormInput
+            label="Initial Balance (LKR)"
+            id="initial_balance"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="e.g. 500"
+            value={form.initial_balance}
+            onChange={(e) => setForm({ ...form, initial_balance: e.target.value })}
+            error={errors.initial_balance}
+            required
+          />
+        )}
+
+        {/* Monthly Fee — static */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Monthly Fee
+          </label>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200">
+            <span className="text-indigo-700 font-bold text-sm">LKR 500.00</span>
+            <span className="text-xs text-indigo-400">/ month (fixed rate)</span>
+          </div>
+          {editUser && editUser.balance !== undefined && (
+            <p className="mt-1 text-xs text-gray-400">
+              Current balance:{' '}
+              <span className={parseFloat(editUser.balance) > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+                {parseFloat(editUser.balance) > 0
+                  ? `LKR ${parseFloat(editUser.balance).toFixed(2)} owes`
+                  : parseFloat(editUser.balance) < 0
+                  ? `LKR ${Math.abs(parseFloat(editUser.balance)).toFixed(2)} credit`
+                  : 'LKR 0.00 settled'}
+              </span>
+            </p>
+          )}
+        </div>
 
         {/* Active Toggle */}
         <div className="mb-4">
